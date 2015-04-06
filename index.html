@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+ 	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Interactive Family Tree</title>
+		<script script type="text/javascript" src="getData.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+		
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+		<style>
+
+		.link line {
+		  stroke: #9ecae1;
+		  stroke-width: 1px;
+		}
+
+		.link line.marriage {
+		  stroke: #dd1c77;
+		  stroke-width: 3px;
+		}
+
+		.link line.divorce {
+		  stroke: #636363;
+		  stroke-width: 3px;
+		}
+		
+	    .link line.adopted {
+		  stroke: #fec44f;
+		  stroke-width: 3px;
+		}
+		
+		.link line.sibling {
+		  stroke: #2ca25f;
+		  stroke-width: 3px;
+		}
+
+		.node circle {
+		  stroke: #fff;
+  		  stroke-width: 1.5px;
+		}
+		
+		.node circle.dead {
+		  color: #1f77b4;
+		  stroke: #fff;
+		  stroke-width: 10px;
+		  stroke-dasharray: 0,2 1;
+		}
+
+		.node text {
+		  fill: #fff;
+		  font: 10px sans-serif;
+		  pointer-events: none;
+		}
+		
+		div#contact_us {
+			margin-top: 5px;
+			text-align: left;
+		}
+		
+		div#contact_us div {
+			clear: both;
+		}
+	
+		.profile_icon {
+			display: inline-block;
+			margin: 15px 0px 10px 15px;
+			border-radius: 50%;
+			-webkit-border-radius: 150px;
+			width:100px;
+   			height:100px;
+		}
+		
+		.legend {
+			text-align: left;
+			display: inline-block;
+			margin: 0px 0px 0px 0px;
+			-webkit-border-radius: 100px;
+			width:80%;
+   			height:80%;
+		}
+		
+		</style>
+	</head>
+	<body>
+	
+			<div class="container">
+
+    			<h1>Maa! What's grand-grandma's first name?</h1>
+				<p>This is an interactive family tree. Please start by entering <b>Family Information</b> of two family members. </p><hr>
+			
+				<div class="row">
+					<div class="col-md-3">
+						<form id="family" action="">
+						<h4>Person 1</h4>
+						<input type="text" name="source" value="" id="sourceName" list="json-datalist" placeholder="Name">
+						<datalist id="json-datalist"></datalist>
+						<select name="yearpicker1" id="yearpicker1">
+						  <script>
+						  var myDate = new Date();
+						  var year = myDate.getFullYear();
+						  for(var i = 1901; i < year+1; i++){
+							  document.write('<option value="'+i+'">'+i+'</option>');
+						  }
+						  </script>
+						</select>
+						<p></p>
+						<select id="alive1">
+							<option selected value="1">Alive</option>
+							<option value="0">Dead</option>
+						</select>
+					</div>	
+					<div class="col-md-1"></div>
+					<div class="col-md-3">
+						<h4>Person 2</h4>
+						<input type="text" name="target" value="" id="targetName" list="json-datalist2" placeholder="Name">
+						<datalist id="json-datalist2"></datalist>
+					
+						<select name="yearpicker2" id="yearpicker2">
+						  <script>
+						  var myDate = new Date();
+						  var year = myDate.getFullYear();
+						  for(var i = 1901; i < year+1; i++){
+							  document.write('<option value="'+i+'">'+i+'</option>');
+						  }
+						  </script>
+						</select>
+						<p></p>
+						<select id="alive2">
+							<option value="1" selected>Alive</option>
+							<option value="0">Dead</option>
+						</select>
+						<p></p>
+					</div>
+					<div class="col-md-1"></div>
+					<div class="col-md-4">
+					
+						<p>For example: Person 1 is Person 2's ________</p>
+						<select id="relationship">
+							<option value="none">Select Relationship</option>
+							<option value="1">Parent</option>
+							<option value="2">Child</option>
+							<option value="6">Adopted Child</option>
+							<option value="3">Sibling</option>
+							<option value="4">Spouse</option>
+							<option value="5">Ex-Spouse</option>
+						
+						</select>
+						<p></p>
+						<p><botton type="button" class="btn btn-default btn-sm" id="submit" onclick="getData();">Submit</botton>
+						<botton type="button" class="btn btn-default btn-sm" id="submit2" onclick="getData2();">Update</botton></p>
+					
+						</form>
+						</div>
+				</div><hr/>
+				
+				<div class="row">
+					<div class = "col-md-9" id="body">
+<!-- 						<h4 style="text-align:center;">Interactive Family Tree</h4> -->
+					</div>
+					<div class = "col-md-3">
+						<!--Sort By Generation or Year -->
+						<h4 style="text-align:left;">View</h4>
+						<p>Please choose how you would like to view the family tree</p>
+						<p><botton type="button" class="btn btn-default btn-sm" id="sortByYear" onclick="sortByYear(graph);">Sort By Year</p>
+						<p><botton type="button" class="btn btn-default btn-sm" id="sortByGen" onclick="sortByGen(graph);">Sort By Generation</p>
+						<hr/>
+						<h4 style="text-align:left;">Legend</h4>
+						<div id="legend">
+							<img src="img/legend.jpg" alt="" class="legend"></img>
+						</div>
+						<hr/>
+						<h4 style="text-align:left;">Team</h4>
+						<div id="contact_us">
+							<p><img src="img/yuming.png" alt="" class="profile_icon"></img>
+							<a href="mailto:xuym91@uw.edu?Subject=d3%20family%20tree" target="_top">Yuming Xu</a></p>
+							<p><img src="img/yanling.jpg" alt="" class="profile_icon"></img>
+							<a href="mailto:ylhu@uw.edu?Subject=d3%20family%20tree" target="_top">Yanling Hu</a></p>
+							<p><img src="img/fei.jpg" alt="" class="profile_icon"></img>
+							<a href="mailto:feig@uw.edu?Subject=d3%20family%20tree" target="_top">Fei Guo</a></p>
+							<p><img src="img/jun.jpg" alt="" class="profile_icon"></img>
+							<a href="mailto:junfan@uw.edu ?Subject=d3%20family%20tree" target="_top">Jun Fan</a></p>
+						</div>
+					</div>	
+				</div>				
+			</div>
+
+		<!-- // d3 section // -->
+		
+		<script src="http://d3js.org/d3.v2.min.js?2.9.6"></script>		
+		<script>
+
+		var width = 850,
+			height = 1000;
+
+		var color = d3.scale.category20();
+
+		var radius = d3.scale.sqrt()
+			.range([0, 6]);
+
+		var svg = d3.select("#body").append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+		var force = d3.layout.force()
+// 			.gravity(0.08)
+			.size([width-100, height])
+			.charge(-700)
+			.linkDistance(function(d) { return radius(2000 / (d.source.birth-1900)) + radius(1500 / (d.target.birth-1900)) + 20; });
+
+
+		var graph = {  "nodes": [
+						    // {"family": "3", "birth": 1989, "title": "Fei", "id": 0, "alive": 1},
+    						// {"family": "4", "birth": 2007, "title": "Barlee", "id": 1, "alive": 1}, 
+    						// {"family": "3", "birth": 2001, "title": "Dan", "id": 2, "alive": 1},
+					  ],
+					  "links": [
+					  		// {"source": 0, "target": 1,  "bond": 3},
+					  	 // 	{"source": 0, "target": 2,  "bond": 1}
+					  ]};
+		var count  = 0;
+		if(count != 0){
+			sortByGen(graph);
+		}
+		
+		var rootIndex = 0;
+		var rootPosition = 80;
+			
+		// sort by year //
+		function sortByYear(graph){
+			svg.selectAll(".link").remove();
+			svg.selectAll(".nodes").remove();
+		
+			force
+			  .nodes(graph.nodes)
+			  .links(graph.links)
+			  .start()
+			  .on("tick", tick)
+
+			svg.selectAll(".link").remove();
+			svg.selectAll(".node").remove();
+
+			// make link //
+			
+			var link = svg.selectAll(".link")
+			  .data(graph.links)
+			  .enter().append("g")
+			  .attr("class", "link");
+
+			link.append("line");
+			//.style("stroke-width", function(d) { return d.bond * 2 + "px"; });
+
+		
+			link.filter(function(d) { return d.bond == 3; }).append("line")
+			.attr("class", "sibling");
+			
+			link.filter(function(d) { return d.bond == 4; }).append("line")
+			  .attr("class", "marriage");
+			  
+			link.filter(function(d) { return d.bond == 5; }).append("line")
+			  .attr("class", "divorce");
+
+			link.filter(function(d) { return d.bond == 6; }).append("line")
+			  .attr("class", "adopted");
+			  
+			
+			// make node //
+			
+			var node = svg.selectAll(".node")
+			  .data(graph.nodes)
+			.enter().append("g")
+			  .attr("class", "node")
+			  .call(force.drag);
+
+			var myDate = new Date();
+			var year = myDate.getFullYear();
+	  		
+			node.append("circle")
+// 			  .attr("r", function(d) { return radius(200/ (d.birth - 1900)); })
+// 			  .attr("r", function(d) { return radius( 2000 - (d.birth-1900)); })
+			  .attr("r", function(d) { return d.birth < 1920? radius(100): radius(2000/ (d.birth - 1900)); })		  
+			  .style("fill", function(d) { return color(d.family); })
+			  .filter(function(d) { return d.alive == 0; }).attr("class", "dead");
+
+			node.append("text")
+			  .attr("dy", ".35em")
+			  .attr("text-anchor", "middle")
+			  .text(function(d) { return d.title + d.birth; });
+
+			function tick() {
+				node.attr("cx", function(d) { return d.x = Math.max(15, Math.min(width - 15, d.x)); })
+    				.attr("cy", function(d) { return d.y = Math.max(15, Math.min(height - 15, d.y)); });
+				
+				link.selectAll("line")
+					.attr("x1", function(d) { return d.source.x; })
+					.attr("y1", function(d) { return d.source.y; })
+					.attr("x2", function(d) { return d.target.x; })
+					.attr("y2", function(d) { return d.target.y; });
+
+				node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+				// find the oldest person in the family and put it on top //
+				rootIndex = findRoot(graph.nodes);
+				graph.nodes[rootIndex].x = width/2 - 100;
+				graph.nodes[rootIndex].y = rootPosition;
+			
+				var rootYear = graph.nodes[rootIndex].birth;
+				// put each generation 100px apart //
+				for (i = 0; i < graph.nodes.length; i++) {
+				  if (i != rootIndex) {
+					var diff = graph.nodes[i].birth - rootYear
+					graph.nodes[i].y = rootPosition + diff*10;
+				  }
+				}	
+			}
+		}
+
+
+		// function to sort by time//
+		function sortByGen(graph){
+			svg.selectAll(".link").remove();
+			svg.selectAll(".nodes").remove();
+			
+			force
+			  .nodes(graph.nodes)
+			  .links(graph.links)
+			  .start()
+			  .on("tick", tick)
+
+			svg.selectAll(".link").remove();
+			svg.selectAll(".node").remove();
+
+			// make link //
+			
+			var link = svg.selectAll(".link")
+			  .data(graph.links)
+			  .enter().append("g")
+			  .attr("class", "link");
+
+			link.append("line");
+			//.style("stroke-width", function(d) { return d.bond * 2 + "px"; });
+
+		
+			link.filter(function(d) { return d.bond == 3; }).append("line")
+			.attr("class", "sibling");
+			
+			link.filter(function(d) { return d.bond == 4; }).append("line")
+			  .attr("class", "marriage");
+			  
+			link.filter(function(d) { return d.bond == 5; }).append("line")
+			  .attr("class", "divorce");
+
+			link.filter(function(d) { return d.bond == 6; }).append("line")
+			  .attr("class", "adopted");
+			  
+			
+			// make node //
+
+			var node = svg.selectAll(".node")
+			  .data(graph.nodes)
+			.enter().append("g")
+			  .attr("class", "node")
+			  .call(force.drag);
+
+			var myDate = new Date();
+			var year = myDate.getFullYear();
+		  
+			node.append("circle")
+// 			  .attr("r", function(d) { return radius(200/ (d.birth - 1900)); })
+// 			  .attr("r", function(d) { return radius( 2000 - (d.birth-1900)); })
+			  .attr("r", function(d) { return d.birth < 1920? radius(100): radius(2000/ (d.birth - 1900)); })		  
+			  .style("fill", function(d) { return color(d.family); })
+			  .filter(function(d) { return d.alive == 0; }).attr("class", "dead");
+
+			node.append("text")
+			  .attr("dy", ".35em")
+			  .attr("text-anchor", "middle")
+			  .text(function(d) { return d.title; });
+
+			function tick() {
+				node.attr("cx", function(d) { return d.x = Math.max(15, Math.min(width - 15, d.x)); })
+    				.attr("cy", function(d) { return d.y = Math.max(15, Math.min(height - 15, d.y)); });
+				
+				link.selectAll("line")
+					.attr("x1", function(d) { return d.source.x; })
+					.attr("y1", function(d) { return d.source.y; })
+					.attr("x2", function(d) { return d.target.x; })
+					.attr("y2", function(d) { return d.target.y; });
+
+				node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+	
+				// find the oldest person in the family and put it on top //
+				rootIndex = findRoot(graph.nodes);
+				graph.nodes[rootIndex].x = width/2 - 100;
+				graph.nodes[rootIndex].y = rootPosition;
+				
+				var rootGen = graph.nodes[rootIndex].family
+
+				// put each generation 100px apart //
+				for (i = 0; i < graph.nodes.length; i++) {
+				  var nodeGen = graph.nodes[i].family  
+				  if (i != rootIndex) {
+					if (nodeGen == rootGen) {
+						graph.nodes[i].y = rootPosition;
+					} else {
+						var diff = nodeGen - rootGen;
+						graph.nodes[i].y = rootPosition + diff*100;
+					}
+				  }
+				}
+			}	
+		}
+		  
+  			
+	  // function to find the oldest person in the family //
+	  function findRoot(nodes) {
+		var index = 0;
+		var oldest = 2015;
+		var len = nodes.length;
+		for (i = 0; i < len; i++) {
+		  if (oldest > nodes[i].birth) {
+			oldest = nodes[i].birth;
+			index = i;
+		  }
+		}
+		return index;
+	  }
+
+ 
+		</script>
+	</body>
+</html>
